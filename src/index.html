@@ -30,28 +30,37 @@ var player;
 var cursors;
 var goals;
     
-var yVelocity = 100;
-
+var yVelocity = 300;
+var maxXVelocity = 1000;     // fastest the player can move sideways
+var accel = 300;             // lateral acceleration
+var damp = 1.1;              // how quickly player stops moving
+    
+//world dimensions
+var domainLeft = 0;
+var domainTop = -600;
+var domainWidth = 800;
+var domainHeight = 1000;
+    
 function create() {
     // Enable physics
     game.physics.startSystem(Phaser.Physics.ARCADE);
     
     
-    // Setup player
-    player = game.add.sprite(400, game.world.height - 200, 'player')
+    // Player
+    player = game.add.sprite((game.world.width / 2) - 50, game.world.height - 200, 'player')
     game.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
     
-    // Setup goals
+    // Goals
     // code modified from http://phaser.io/examples/v2/camera/mass-camera-cull
-    game.world.setBounds(0, 0, 800, 600);
+    game.world.setBounds(0, -600, 800, 1200);
     
     goals = game.add.group();
     goals.enableBody = true;
     
     for (var i = 0; i < 5; i++)
     {
-        var s = goals.create(game.rnd.between(0, 800), 0, 'goal01');
+        var s = goals.create(game.world.randomX, game.rnd.between(game.world.bounds.top, -100), 'goal01');
         game.physics.arcade.enable(s);
         s.body.velocity.y = yVelocity;
         s.autoCull = true;
@@ -59,18 +68,31 @@ function create() {
         s.events.onOutOfBounds.add(resetSprite, this);
     }
     
+    // Obstacles
+    obstacles = game.add.group();
+    obstacles.enableBody = true;
+    
+    for (var i = 0; i < 1; i++)
+    {
+        var o = obstacles.create(game.world.randomX, -200, 'obstacle01');
+        game.physics.arcade.enable(o);
+        o.body.velocity.y = yVelocity;
+        o.autoCull = true;
+        o.checkWorldBounds = true;
+        o.events.onOutOfBounds.add(resetSprite, this);
+    }
+    
+    
     // Controls
     cursors = game.input.keyboard.createCursorKeys()
 }
 
-    
-maxXVelocity = 1000;   // fastest the player can move sideways
-accel = 300;             // lateral acceleration
-damp = 1.1;              // how quickly player stops moving
+
     
 function update() {
-    // check for collecting goals
+    // check for hitting goals and obstacles
     game.physics.arcade.overlap(player, goals, reachGoal, null, this);
+    game.physics.arcade.overlap(player, obstacles, reachObstacle, null, this);
     
     // movement
     xVelocity = player.body.velocity.x;
@@ -109,10 +131,16 @@ function render() {
     
 function resetSprite(sprite) {
     sprite.y = game.world.bounds.top;
+    sprite.x = game.world.randomX;
 }
     
 function reachGoal(player, goal) {
-    goal.kill();
+    //goal.kill();
+    resetSprite(goal);
+}
+    
+function reachObstacle(player, obstacle) {
+    resetSprite(obstacle);
 }
 
 </script>
