@@ -14,7 +14,7 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
 
@@ -28,6 +28,9 @@ function preload() {
     
 var player;
 var cursors;
+var goals;
+    
+var yVelocity = 100;
 
 function create() {
     // Enable physics
@@ -37,47 +40,79 @@ function create() {
     // Setup player
     player = game.add.sprite(400, game.world.height - 200, 'player')
     game.physics.arcade.enable(player);
-    
     player.body.collideWorldBounds = true;
+    
+    // Setup goals
+    // code modified from http://phaser.io/examples/v2/camera/mass-camera-cull
+    game.world.setBounds(0, 0, 800, 600);
+    
+    goals = game.add.group();
+    goals.enableBody = true;
+    
+    for (var i = 0; i < 5; i++)
+    {
+        var s = goals.create(game.rnd.between(0, 800), 0, 'goal01');
+        game.physics.arcade.enable(s);
+        s.body.velocity.y = yVelocity;
+        s.autoCull = true;
+        s.checkWorldBounds = true;
+        s.events.onOutOfBounds.add(resetSprite, this);
+    }
     
     // Controls
     cursors = game.input.keyboard.createCursorKeys()
 }
 
-max_x_velocity = 1000;   // fastest the player can move sideways
+    
+maxXVelocity = 1000;   // fastest the player can move sideways
 accel = 300;             // lateral acceleration
 damp = 1.1;              // how quickly player stops moving
     
 function update() {
-    x_velocity = player.body.velocity.x;
+    // check for collecting goals
+    game.physics.arcade.overlap(player, goals, reachGoal, null, this);
     
-    //  Reset the players velocity (movement)
-   // player.body.velocity.x = 0;
+    // movement
+    xVelocity = player.body.velocity.x;
     
     if (cursors.left.isDown)
     {
         //  Move to the left
-        if (x_velocity > -max_x_velocity) {
-            player.body.velocity.x = x_velocity - accel;
+        if (xVelocity > -maxXVelocity) {
+            player.body.velocity.x = xVelocity - accel;
         }
     }
     else if (cursors.right.isDown)
     {
         //  Move to the right
-        if (x_velocity < max_x_velocity) {
-            player.body.velocity.x = x_velocity + accel;
+        if (xVelocity < maxXVelocity) {
+            player.body.velocity.x = xVelocity + accel;
         }
     }
     else
     {
         //  No keys
-        if (x_velocity > 0) {
-            player.body.velocity.x = x_velocity / damp;
+        if (xVelocity > 0) {
+            player.body.velocity.x = xVelocity / damp;
         }
-        else if (x_velocity < 0) {
-            player.body.velocity.x = -(-x_velocity / damp);         
+        else if (xVelocity < 0) {
+            player.body.velocity.x = -(-xVelocity / damp);         
         }
     }
+}
+    
+function render() {
+
+    game.debug.cameraInfo(game.camera, 32, 32);
+
+}
+    
+function resetSprite(sprite) {
+    sprite.y = game.world.bounds.top;
+}
+    
+function reachGoal(player, goal) {
+    goal.kill();
 }
 
 </script>
