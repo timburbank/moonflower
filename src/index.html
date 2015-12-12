@@ -39,6 +39,28 @@ var maxXVelocity = 1000;     // fastest the player can move sideways
 var accel = 300;             // lateral acceleration
 var damp = 1.1;              // how quickly player stops moving
     
+var goalPlacements = [ // sprite
+    // position nubmer
+    [
+        // coordinates
+        [350, 150],
+        [335, 450],
+        [515, 750],
+        [425, 1050]
+    ],
+    [
+        [415, 150],
+        [480, 450],
+        [405, 750],
+        [440, 1050]   
+    ],
+    [
+        [225, 150],
+        [145, 450],
+        [210, 750],
+        [375, 1050] 
+    ]
+];
     
 function create() {
     // World settings
@@ -61,26 +83,36 @@ function create() {
     }
     
     
-    // Player
-    player = game.add.sprite((game.world.width / 2) - 50, 400, 'player')
-    game.physics.arcade.enable(player);
-    player.body.collideWorldBounds = true;
-    
     // Goals
     // code modified from http://phaser.io/examples/v2/camera/mass-camera-cull
     
     goals = game.add.group();
     goals.enableBody = true;
     
-    for (var i = 0; i < 5; i++)
+    var positionNum;
+    var positionX;
+    var positionY;
+    
+    for (var i = 0; i < 4; i++)
     {
-        var s = goals.create(game.world.randomX, game.rnd.between(game.world.bounds.top, -100), 'goal01');
+        positionNum = i;
+        positionX = goalPlacements[0][positionNum][0];
+        positionY = goalPlacements[0][positionNum][1];
+        
+        
+        var s = goals.create(positionX, positionY, 'goal01');
         game.physics.arcade.enable(s);
         s.body.velocity.y = yVelocity;
         s.autoCull = true;
         s.checkWorldBounds = true;
-        s.events.onOutOfBounds.add(resetSprite, this);
+        s.events.onOutOfBounds.add(removeSprite, this);
     }
+    
+    // Player
+    player = game.add.sprite((game.world.width / 2) - 50, 400, 'player')
+    game.physics.arcade.enable(player);
+    player.body.collideWorldBounds = true;
+    
     
     // Obstacles
     obstacles = game.add.group();
@@ -148,10 +180,17 @@ function resetSprite(sprite) {
     sprite.x = game.world.randomX;
 }
     
+function removeSprite(sprite) {
+    sprite.kill();
+}
+    
 function resetBackground(sprite) {
-    backgroundNum = game.rnd.between(1, 3);
+    var backgroundNum = game.rnd.between(1, 3);
     sprite.kill();
     
+    // vines is global
+    // the + 10 is to compensate for the frame it takes to load the next
+    // background. I think it's Speed / fps * 2
     var v = vines.create(0, game.world.bounds.top + 10, 'bg_vine0' + backgroundNum);
     game.physics.arcade.enable(v);
     v.body.velocity.y = yVelocity;
@@ -159,17 +198,39 @@ function resetBackground(sprite) {
     v.checkWorldBounds = true;
     v.events.onOutOfBounds.add(resetBackground, this);
     
+    // spawn goals
+    var positionNum;
+    var positionX;
+    var positionY;
+    
+    for (var i = 0; i < 4; i++)
+    {
+        positionNum = i;
+        // -50 is sprite width / 2
+        positionX = goalPlacements[backgroundNum - 1][positionNum][0] - 50;
+        positionY = goalPlacements[backgroundNum - 1][positionNum][1] + game.world.bounds.top - 50;
+        
+        
+        var s = goals.create(positionX, positionY, 'goal01');
+        game.physics.arcade.enable(s);
+        s.body.velocity.y = yVelocity;
+        s.autoCull = true;
+        s.checkWorldBounds = true;
+        s.events.onOutOfBounds.add(removeSprite, this);
+    }
+    
 //    sprite.y = game.world.bounds.top;
 }
     
 function reachGoal(player, goal) {
-    //goal.kill();
-    resetSprite(goal);
+    goal.kill();
 }
     
 function reachObstacle(player, obstacle) {
-    resetSprite(obstacle);
+    obstacle.y = game.world.bounds.top;
+    obstacle.x = game.world.randomX;
 }
+    
 
 </script>
 
