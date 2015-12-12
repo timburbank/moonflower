@@ -14,13 +14,16 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() {
 
     game.load.image('player', 'assets/player.png');
     game.load.image('goal01', 'assets/goal01.png');
     game.load.image('obstacle01', 'assets/obstacle01.png');
+    game.load.image('bg_vine01', 'assets/bg_vine01.png');
+    game.load.image('bg_vine02', 'assets/bg_vine02.png');
+    game.load.image('bg_vine03', 'assets/bg_vine03.png');
     
     game.stage.backgroundColor = '#000000';
 
@@ -29,31 +32,42 @@ function preload() {
 var player;
 var cursors;
 var goals;
+var vines;
     
 var yVelocity = 300;
 var maxXVelocity = 1000;     // fastest the player can move sideways
 var accel = 300;             // lateral acceleration
 var damp = 1.1;              // how quickly player stops moving
     
-//world dimensions
-var domainLeft = 0;
-var domainTop = -600;
-var domainWidth = 800;
-var domainHeight = 1000;
     
 function create() {
-    // Enable physics
+    // World settings
     game.physics.startSystem(Phaser.Physics.ARCADE);
+    game.world.setBounds(0, -1200, 800, 2400);
+    
+    
+    // Background Vines, go first so everything will be in front of them
+    vines = game.add.group();
+    vines.enableBody = true;
+    
+    for (var i = 0; i < 2; i++) 
+    {
+        var v = vines.create(0, game.world.bounds.top * i, 'bg_vine01');
+        game.physics.arcade.enable(v);
+        v.body.velocity.y = yVelocity;
+        v.autoCull = true;
+        v.checkWorldBounds = true;
+        v.events.onOutOfBounds.add(resetBackground, this);
+    }
     
     
     // Player
-    player = game.add.sprite((game.world.width / 2) - 50, game.world.height - 200, 'player')
+    player = game.add.sprite((game.world.width / 2) - 50, 400, 'player')
     game.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
     
     // Goals
     // code modified from http://phaser.io/examples/v2/camera/mass-camera-cull
-    game.world.setBounds(0, -600, 800, 1200);
     
     goals = game.add.group();
     goals.enableBody = true;
@@ -132,6 +146,20 @@ function render() {
 function resetSprite(sprite) {
     sprite.y = game.world.bounds.top;
     sprite.x = game.world.randomX;
+}
+    
+function resetBackground(sprite) {
+    backgroundNum = game.rnd.between(1, 3);
+    sprite.kill();
+    
+    var v = vines.create(0, game.world.bounds.top + 10, 'bg_vine0' + backgroundNum);
+    game.physics.arcade.enable(v);
+    v.body.velocity.y = yVelocity;
+    v.autoCull = true;
+    v.checkWorldBounds = true;
+    v.events.onOutOfBounds.add(resetBackground, this);
+    
+//    sprite.y = game.world.bounds.top;
 }
     
 function reachGoal(player, goal) {
