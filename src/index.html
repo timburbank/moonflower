@@ -18,7 +18,7 @@ var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create
 
 function preload() {
 
-    game.load.image('player', 'assets/player.png');
+    game.load.spritesheet('player', 'assets/player_sprite.png', 120, 120);
     game.load.image('goal01', 'assets/goal01.png');
     game.load.spritesheet('collectedGoal', 'assets/goal01_sprite.png', 120, 120);
     game.load.image('obstacle01', 'assets/obstacle01.png');
@@ -119,9 +119,11 @@ function create() {
     collectedGoals.enableBody = true;
     
     // Player
-    player = game.add.sprite((game.world.width / 2) - 50, 550, 'player')
+    player = game.add.sprite((game.world.width / 2) - 60, 550, 'player')
     game.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
+    player.animations.add('fly', [0, 1, 2, 3], 10, true);
+    player.animations.play('fly');
     
     
     // Obstacles
