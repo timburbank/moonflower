@@ -22,6 +22,7 @@ function preload() {
     game.load.image('goal01', 'assets/goal01.png');
     game.load.spritesheet('collectedGoal', 'assets/goal01_sprite.png', 120, 120);
     game.load.image('obstacle01', 'assets/obstacle01.png');
+    game.load.image('obstacle02', 'assets/obstacle02.png');
     game.load.image('bg_vine01', 'assets/bg_vine01.png');
     game.load.image('bg_vine02', 'assets/bg_vine02.png');
     game.load.image('bg_vine03', 'assets/bg_vine03.png');
@@ -46,6 +47,8 @@ var accel = 300;             // lateral acceleration
 var damp = 1.2;              // how quickly player stops moving
     
 var missPenalty = 5;
+    
+var obstacleNum = 0;
     
 var goalPlacements = [ // sprite
     // position nubmer
@@ -89,6 +92,7 @@ function create() {
         v.autoCull = true;
         v.checkWorldBounds = true;
         v.events.onOutOfBounds.add(resetBackground, this);
+        
     }
     
     
@@ -134,14 +138,16 @@ function create() {
     obstacles = game.add.group();
     obstacles.enableBody = true;
     
+    
     for (var i = 0; i < 1; i++)
     {
-        var o = obstacles.create(game.world.randomX, -200, 'obstacle01');
+        var o = obstacles.create(game.world.randomX, 0, 'obstacle01');
         game.physics.arcade.enable(o);
         o.body.velocity.y = yVelocity;
         o.autoCull = true;
         o.checkWorldBounds = true;
-        o.events.onOutOfBounds.add(resetSprite, this);
+        o.events.onOutOfBounds.add(setObstaclePosition, this);
+        setObstaclePosition(o);
     }
     
     //  The score
@@ -268,7 +274,7 @@ function resetBackground(sprite) {
         s.body.velocity.y = yVelocity;
         s.autoCull = true;
         s.checkWorldBounds = true;
-        s.events.onOutOfBounds.add(missObstacle, this);
+        s.events.onOutOfBounds.add(missGoal, this);
     }
     
 //    sprite.y = game.world.bounds.top;
@@ -299,18 +305,46 @@ function reachObstacle(player, obstacle) {
     yVelocity = 50;
     streak = 0;
     scoreText.text = "score: " + streak;
-    obstacle.y = game.world.bounds.top;
-    obstacle.x = game.world.randomX;
+    setObstaclePosition(obstacle);
 }
     
-function missObstacle (player, obstacle) {
+function missGoal (player, obstacle) {
     streak = streak - missPenalty;
     if (streak < 0) {
         streak = 0;
     }
     scoreText.text = "score: " + streak;
 }
+
+function setObstaclePosition (obstacle) {
+    // small chance of displaying monster face
+    if (game.rnd.between(0, 16) == 16) {
+        obstacle.loadTexture('obstacle02');
+    }
+    else {
+        obstacle.loadTexture('obstacle01');
+    }
     
+// possible x positions are limited for better readability
+    // uses lots of magic numbers based on game and player width
+    slot = game.rnd.between(0, 6);
+
+    // cheat positions slightly to let player pass
+    if (slot == 2) {
+        obstacle.x = 125;
+    }
+    else if (slot == 4) {
+        obstacle.x = 275;
+    }
+    else {
+        obstacle.x = (slot * 100) - 100;
+    }
+    
+    // y pos random within the area above the visible screen
+    obstacle.y = game.world.bounds.top + game.rnd.between(0, 800);
+
+    
+}
 
 </script>
 
