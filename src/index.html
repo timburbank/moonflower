@@ -14,7 +14,7 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(600, 800, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() {
 
@@ -68,7 +68,7 @@ var goalPlacements = [ // sprite
 function create() {
     // World settings
     game.physics.startSystem(Phaser.Physics.ARCADE);
-    game.world.setBounds(0, -1200, 800, 2400);
+    game.world.setBounds(0, -1200, 600, 2400);
     
     yVelocity = defaultYVelocity;
     
@@ -113,7 +113,7 @@ function create() {
     }
     
     // Player
-    player = game.add.sprite((game.world.width / 2) - 50, 400, 'player')
+    player = game.add.sprite((game.world.width / 2) - 50, 600, 'player')
     game.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
     
