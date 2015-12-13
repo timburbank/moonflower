@@ -20,6 +20,7 @@ function preload() {
 
     game.load.image('player', 'assets/player.png');
     game.load.image('goal01', 'assets/goal01.png');
+    game.load.spritesheet('collectedGoal', 'assets/goal01_sprite.png', 120, 120);
     game.load.image('obstacle01', 'assets/obstacle01.png');
     game.load.image('bg_vine01', 'assets/bg_vine01.png');
     game.load.image('bg_vine02', 'assets/bg_vine02.png');
@@ -112,8 +113,13 @@ function create() {
         s.events.onOutOfBounds.add(removeSprite, this);
     }
     
+    // Sprite to show after goals have been collected
+    // added to game in reachGoal()
+    collectedGoals = game.add.group();
+    collectedGoals.enableBody = true;
+    
     // Player
-    player = game.add.sprite((game.world.width / 2) - 50, 600, 'player')
+    player = game.add.sprite((game.world.width / 2) - 50, 550, 'player')
     game.physics.arcade.enable(player);
     player.body.collideWorldBounds = true;
     
@@ -170,6 +176,9 @@ function update() {
         sprite.body.velocity.y = yVelocity;
     });
     obstacles.forEachExists(function(sprite) {
+        sprite.body.velocity.y = yVelocity;
+    });
+    collectedGoals.forEachExists(function(sprite) {
         sprite.body.velocity.y = yVelocity;
     });
     
@@ -243,8 +252,8 @@ function resetBackground(sprite) {
     {
         positionNum = i;
         // -50 is sprite width / 2
-        positionX = goalPlacements[backgroundNum - 1][positionNum][0] - 50;
-        positionY = goalPlacements[backgroundNum - 1][positionNum][1] + game.world.bounds.top - 50;
+        positionX = goalPlacements[backgroundNum - 1][positionNum][0] - 17;
+        positionY = goalPlacements[backgroundNum - 1][positionNum][1] + game.world.bounds.top - 17;
         
         
         var s = goals.create(positionX, positionY, 'goal01');
@@ -263,6 +272,15 @@ function reachGoal(player, goal) {
     streak++;
     scoreText.text = streak;
     
+    // Spawn collectedGoal sprites
+    // 43 is a magic number, from (collectedGoal width / 2) - (goal width / 2)
+    collectedGoal = collectedGoals.create(goal.x - 43, goal.y - 43, 'collectedGoal');
+    collectedGoal.body.velocity.y = yVelocity;
+    collectedGoal.checkWorldBounds = true;
+    collectedGoal.events.onOutOfBounds.add(removeSprite, this)
+    
+    collectedGoal.animations.add('grow', [0, 1, 2, 3, 4], 20, false);
+    collectedGoal.animations.play('grow');
     goal.kill();
 }
     
