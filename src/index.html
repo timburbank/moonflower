@@ -35,13 +35,17 @@ var cursors;
 var goals;
 var vines;
 var scoreText;
+var maxScoreText;
 var streak = 0;             // how many successive goal hits
+var maxScore = 0;
     
 var yVelocity;              // current forward velocity
 var defaultYVelocity = 300; // default foward velocity
 var maxXVelocity = 800;     // fastest the player can move sideways
 var accel = 300;             // lateral acceleration
 var damp = 1.2;              // how quickly player stops moving
+    
+var missPenalty = 5;
     
 var goalPlacements = [ // sprite
     // position nubmer
@@ -141,7 +145,8 @@ function create() {
     }
     
     //  The score
-    scoreText = game.add.text(16, 16, '0', { fontSize: '32px', fill: '#fff' });
+    scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
+    maxScoreText = game.add.text(200, 16, 'max: 0', { fontSize: '32px', fill: '#fff' });
     
     // Controls
     cursors = game.input.keyboard.createCursorKeys()
@@ -263,7 +268,7 @@ function resetBackground(sprite) {
         s.body.velocity.y = yVelocity;
         s.autoCull = true;
         s.checkWorldBounds = true;
-        s.events.onOutOfBounds.add(removeSprite, this);
+        s.events.onOutOfBounds.add(missObstacle, this);
     }
     
 //    sprite.y = game.world.bounds.top;
@@ -272,7 +277,11 @@ function resetBackground(sprite) {
 function reachGoal(player, goal) {
     yVelocity = yVelocity + 200;
     streak++;
-    scoreText.text = streak;
+    if (streak > maxScore) {
+        maxScore = streak;
+    }
+    scoreText.text = "score: " + streak;
+    maxScoreText.text = "max: " + maxScore;
     
     // Spawn collectedGoal sprites
     // 43 is a magic number, from (collectedGoal width / 2) - (goal width / 2)
@@ -289,9 +298,17 @@ function reachGoal(player, goal) {
 function reachObstacle(player, obstacle) {
     yVelocity = 50;
     streak = 0;
-    scoreText.text = streak;
+    scoreText.text = "score: " + streak;
     obstacle.y = game.world.bounds.top;
     obstacle.x = game.world.randomX;
+}
+    
+function missObstacle (player, obstacle) {
+    streak = streak - missPenalty;
+    if (streak < 0) {
+        streak = 0;
+    }
+    scoreText.text = "score: " + streak;
 }
     
 
