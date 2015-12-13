@@ -33,8 +33,11 @@ var player;
 var cursors;
 var goals;
 var vines;
+var scoreText;
+var streak = 0;             // how many successive goal hits
     
-var yVelocity = 300;
+var yVelocity;              // current forward velocity
+var defaultYVelocity = 300; // default foward velocity
 var maxXVelocity = 1000;     // fastest the player can move sideways
 var accel = 300;             // lateral acceleration
 var damp = 1.1;              // how quickly player stops moving
@@ -67,6 +70,7 @@ function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.world.setBounds(0, -1200, 800, 2400);
     
+    yVelocity = defaultYVelocity;
     
     // Background Vines, go first so everything will be in front of them
     vines = game.add.group();
@@ -128,6 +132,8 @@ function create() {
         o.events.onOutOfBounds.add(resetSprite, this);
     }
     
+    //  The score
+    scoreText = game.add.text(16, 16, '0', { fontSize: '32px', fill: '#fff' });
     
     // Controls
     cursors = game.input.keyboard.createCursorKeys()
@@ -141,6 +147,33 @@ function update() {
     game.physics.arcade.overlap(player, obstacles, reachObstacle, null, this);
     
     // movement
+    var deltaV = 5;
+    
+    // gradually set yVelocity back to defaultYVelocity
+    if (yVelocity > defaultYVelocity) {
+            yVelocity = yVelocity / 1.01;
+    }
+    else if (yVelocity < defaultYVelocity) {
+        if (defaultYVelocity - yVelocity < deltaV) {
+            yVelocity = defaultYVelocity;
+        }
+        else {
+            yVelocity = yVelocity + deltaV;
+        }
+    }
+    
+    // update y velocities (we could maybe add this to a functiona and only call on changes)
+    vines.forEachExists(function(sprite) {
+        sprite.body.velocity.y = yVelocity;
+    });
+    goals.forEachExists(function(sprite) {
+        sprite.body.velocity.y = yVelocity;
+    });
+    obstacles.forEachExists(function(sprite) {
+        sprite.body.velocity.y = yVelocity;
+    });
+    
+    // player movement
     xVelocity = player.body.velocity.x;
     
     if (cursors.left.isDown)
@@ -168,7 +201,8 @@ function update() {
         }
     }
 }
-    
+
+// enabled by adding render: render to end of new Phaser.Game
 function render() {
 
     game.debug.cameraInfo(game.camera, 32, 32);
@@ -191,7 +225,9 @@ function resetBackground(sprite) {
     // vines is global
     // the + 10 is to compensate for the frame it takes to load the next
     // background. I think it's Speed / fps * 2
-    var v = vines.create(0, game.world.bounds.top + 10, 'bg_vine0' + backgroundNum);
+    offset = 10;
+    
+    var v = vines.create(0, game.world.bounds.top + offset, 'bg_vine0' + backgroundNum);
     game.physics.arcade.enable(v);
     v.body.velocity.y = yVelocity;
     v.autoCull = true;
@@ -223,10 +259,17 @@ function resetBackground(sprite) {
 }
     
 function reachGoal(player, goal) {
+    yVelocity = yVelocity + 200;
+    streak++;
+    scoreText.text = streak;
+    
     goal.kill();
 }
     
 function reachObstacle(player, obstacle) {
+    yVelocity = 50;
+    streak = 0;
+    scoreText.text = streak;
     obstacle.y = game.world.bounds.top;
     obstacle.x = game.world.randomX;
 }
