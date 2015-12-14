@@ -264,7 +264,7 @@ function resetBackground(sprite) {
     for (var i = 0; i < 4; i++)
     {
         positionNum = i;
-        // -50 is sprite width / 2
+        // 17 is a magical number of sprite width / 2
         positionX = goalPlacements[backgroundNum - 1][positionNum][0] - 17;
         positionY = goalPlacements[backgroundNum - 1][positionNum][1] + game.world.bounds.top - 17;
         
