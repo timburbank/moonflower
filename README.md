@@ -4,6 +4,11 @@ Constant scrolling flying game, created for Ludum Dare 34. Built with [Phaser](h
 
 Official entry page <http://ludumdare.com/compo/ludum-dare-34/?action=preview&uid=64121>
 
+This code exists at:
+- <http://code.timburbank.com/tim/moonflower>
+- <https://github.com/timburbank/moonflower/>
+
+
 To Play
 -------
 
@@ -20,4 +25,4 @@ Move with arrow keys. Collect flowers and avoid spider webs.
 Development
 -----------
 
-To run locally, download the repository and run `./	python_server.sh`. Then open <localhost:8000> in a browser.
+To run locally, download the repository and run `./python_server.sh`. Then open <localhost:8000> in a browser.
